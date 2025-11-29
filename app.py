@@ -6,6 +6,9 @@ import numpy as np
 import os
 from datetime import datetime, timedelta
 import warnings
+import base64
+import plotly.io as pio
+
 warnings.filterwarnings('ignore')
 
 # Import forecasting libraries
@@ -31,6 +34,21 @@ try:
 except ImportError:
     LSTM_AVAILABLE = False
 
+RUYA_BG = "#fff7ec"
+RUYA_FONT = "#3e2723"
+
+def ruya_plot(fig):
+    fig.update_layout(
+        paper_bgcolor=RUYA_BG,
+        plot_bgcolor=RUYA_BG,
+        font=dict(color=RUYA_FONT),
+        legend=dict(
+            bgcolor=RUYA_BG,
+            bordercolor="#d7b899"
+        )
+    )
+    st.plotly_chart(fig, use_container_width=True, theme=None)
+
 # Set page configuration
 st.set_page_config(
     page_title="Ruya - Coffee Sales Dashboard", 
@@ -38,6 +56,163 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# --- Global Styling ---
+st.markdown("""
+<style>
+/* =========================
+   TOP HEADER
+   ========================= */
+header[data-testid="stHeader"] {
+    background: #3e2723 !important;   /* dark brown */
+    color: #fbe9e7 !important;        /* light beige text */
+}
+header[data-testid="stHeader"] * {
+    color: #fbe9e7 !important;
+}
+
+/* Force light color scheme */
+:root {
+    color-scheme: light;
+}
+
+/* Main background */
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(135deg, #fdf4e3 0%, #f5e1c8 40%, #f0d6b4 100%);
+}
+
+/* =========================
+   SIDEBAR
+   ========================= */
+[data-testid="stSidebar"] {
+    background-color: #3e2723;
+    color: #fbe9e7;
+}
+[data-testid="stSidebar"] * {
+    color: #fbe9e7 !important;
+}
+
+/* =========================
+   BRAND HEADER + LOGO
+   ========================= */
+.ruya-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1.2rem 0 0.3rem 0;
+}
+
+.ruya-logo {
+    width: 140px;
+    height: auto;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(62, 39, 35, 0.35);
+    margin-bottom: 0.9rem;
+}
+
+.ruya-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #3e2723;
+    margin-top: 0.4rem;
+    margin-bottom: 0.2rem;
+}
+
+/* Subtitle + typing effect */
+.ruya-subtitle {
+    font-size: 1.05rem;
+    color: #6d4c41;
+    margin-bottom: 0.2rem;
+    font-weight: 500;
+}
+
+.typing {
+    font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    border-right: 2px solid #5d4037;
+    white-space: nowrap;
+    overflow: hidden;
+    display: inline-block;
+    width: 0;
+    animation: typing 5s steps(40, end) forwards, blink 0.8s step-end infinite;
+}
+
+@keyframes typing {
+    from { width: 0; }
+    to   { width: 38ch; }
+}
+
+@keyframes blink {
+    50% { border-color: transparent; }
+}
+
+/* =========================
+   KPI CARDS (st.metric)
+   ========================= */
+div[data-testid="metric-container"],
+div[data-testid="stMetric"] {
+    background-color: #fff7ec;
+    border-radius: 18px;
+    padding: 0.85rem 1.2rem;
+    box-shadow: 0 8px 20px rgba(121, 85, 72, 0.18);
+    border: 1px solid rgba(121, 85, 72, 0.25);
+}
+
+/* Text inside KPI cards */
+div[data-testid="metric-container"] *,
+div[data-testid="stMetric"] * {
+    color: #3e2723 !important;
+}
+
+div[data-testid="stMetricLabel"],
+div[data-testid="metric-container"] > label {
+    color: #6d4c41 !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+div[data-testid="stMetricValue"] {
+    color: #3e2723 !important;
+    font-weight: 700;
+    font-size: 1.3rem;
+}
+
+/* =========================
+   PRIMARY BUTTONS
+   (Generate Forecast, Download, etc.)
+   ========================= */
+div[data-testid="stButton"] > button,
+div[data-testid="stDownloadButton"] > button,
+div[data-testid="baseButton-primary"] button,
+button[kind="primary"] {
+    background-color: #6d4c41 !important;
+    color: #fff7ec !important;
+    border-radius: 999px !important;
+    border: none !important;
+    box-shadow: 0 4px 10px rgba(121, 85, 72, 0.30);
+}
+
+div[data-testid="stButton"] > button:hover,
+div[data-testid="stDownloadButton"] > button:hover,
+div[data-testid="baseButton-primary"] button:hover,
+button[kind="primary"]:hover {
+    background-color: #5d4037 !important;
+}
+
+/* =========================
+   ALERTS (st.success, st.warning, etc.)
+   ========================= */
+div[data-testid="stAlert"] {
+    background-color: #fff7ec !important;
+    border-left: 4px solid #6d4c41 !important;
+}
+div[data-testid="stAlert"] * {
+    color: #3e2723 !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # --- Data Loading Function ---
 @st.cache_data
@@ -156,11 +331,27 @@ filtered_df = df[mask].copy()
 # PAGE: OVERVIEW
 # =====================================================
 if page == "Overview":
-    st.title("Ruya - Coffee Sales Dashboard")
-    st.caption("A Smart Sales Analysis and Forecasting System for Coffee Shops")
-    
+    # Brand Hero Header with logo
+    with st.container():
+        col_left, col_center, col_right = st.columns([1, 2, 1])
+        with open('./assets/ruya_logo.jpeg', "rb") as f:
+            logo_b64 = base64.b64encode(f.read()).decode()
+
+        st.markdown(
+            f"""
+            <div class="ruya-header">
+                <img src="data:image/png;base64,{logo_b64}" class="ruya-logo" />
+                <div class="ruya-title">Ruya Analytics Dashboard</div>
+                <div class="ruya-subtitle typing">
+                    Smart Sales Insights for Coffee Shops
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
     st.divider()
-    
+
     # KPI Cards Row 1
     col1, col2, col3, col4 = st.columns(4)
     
@@ -201,14 +392,14 @@ if page == "Overview":
     col_chart1, col_chart2 = st.columns(2)
     
     with col_chart1:
-        st.subheader("Revenue Trend")
+        st.subheader("Revenue Trends")
         if 'Date' in filtered_df.columns and len(filtered_df) > 0:
             daily_sales = filtered_df.groupby('Date')['money'].sum().reset_index()
             fig = px.area(daily_sales, x='Date', y='money', 
                          title='Daily Revenue Over Time',
                          labels={'money': 'Revenue ($)', 'Date': 'Date'})
             fig.update_layout(hovermode='x unified')
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
     
     with col_chart2:
         st.subheader("Top Products")
@@ -220,7 +411,7 @@ if page == "Overview":
                         labels={'money': 'Revenue ($)', 'coffee_name': 'Product'},
                         color='coffee_name')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
     
     # Second Row of Charts
     col_chart3, col_chart4 = st.columns(2)
@@ -232,7 +423,7 @@ if page == "Overview":
             fig = px.pie(season_sales, values='money', names='Season',
                         title='Revenue Distribution by Season')
             fig.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
     
     with col_chart4:
         st.subheader("Sales by Time of Day")
@@ -241,7 +432,7 @@ if page == "Overview":
             fig = px.pie(tod_sales, values='money', names='Time_of_Day',
                         title='Revenue Distribution by Time of Day')
             fig.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
 
 # =====================================================
 # PAGE: SALES ANALYSIS
@@ -270,7 +461,7 @@ elif page == "Sales Analysis":
         fig.update_layout(title='Daily Revenue with 7-Day Moving Average',
                          xaxis_title='Date', yaxis_title='Revenue ($)',
                          hovermode='x unified')
-        st.plotly_chart(fig, use_container_width=True)
+        ruya_plot(fig)
     
     # Transaction Count Trend
     st.subheader("Daily Transactions")
@@ -279,7 +470,7 @@ elif page == "Sales Analysis":
         fig = px.bar(daily_count, x='Date', y='transactions',
                     title='Number of Transactions Per Day',
                     labels={'transactions': 'Transactions', 'Date': 'Date'})
-        st.plotly_chart(fig, use_container_width=True)
+        ruya_plot(fig)
     
     # Monthly Comparison
     col1, col2 = st.columns(2)
@@ -293,7 +484,7 @@ elif page == "Sales Analysis":
                         labels={'money': 'Revenue ($)', 'Month_name': 'Month'},
                         color='Month_name')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
     
     with col2:
         st.subheader("Seasonal Revenue")
@@ -304,7 +495,7 @@ elif page == "Sales Analysis":
                         labels={'money': 'Revenue ($)', 'Season': 'Season'},
                         color='Season')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
     
     # Weekend vs Weekday Analysis
     st.subheader("Weekend vs Weekday Performance")
@@ -324,21 +515,21 @@ elif page == "Sales Analysis":
         with col1:
             fig = px.pie(summary, values='Total Revenue', names='Day_Type',
                         title='Revenue Split')
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         with col2:
             fig = px.bar(summary, x='Day_Type', y='Transactions',
                         title='Transaction Count',
                         color='Day_Type')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         with col3:
             fig = px.bar(summary, x='Day_Type', y='Avg Ticket',
                         title='Average Ticket Size',
                         color='Day_Type')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
 
 # =====================================================
 # PAGE: PRODUCT INSIGHTS
@@ -374,7 +565,7 @@ elif page == "Product Insights":
                         title='Total Revenue by Coffee Type',
                         color='Product')
             fig.update_layout(xaxis_tickangle=-45, showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         with col2:
             st.subheader("Transactions by Product")
@@ -382,7 +573,7 @@ elif page == "Product Insights":
                         title='Transaction Count by Coffee Type',
                         color='Product')
             fig.update_layout(xaxis_tickangle=-45, showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         # Product Mix Pie Chart
         st.subheader("Product Mix")
@@ -393,14 +584,14 @@ elif page == "Product Insights":
                         title='Revenue Distribution by Product',
                         hole=0.4)
             fig.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         with col2:
             fig = px.pie(product_stats, values='Transactions', names='Product',
                         title='Transaction Distribution by Product',
                         hole=0.4)
             fig.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         # Product by Time of Day
         if 'Time_of_Day' in filtered_df.columns:
@@ -411,7 +602,7 @@ elif page == "Product Insights":
                         barmode='group',
                         labels={'money': 'Revenue ($)', 'coffee_name': 'Product'})
             fig.update_layout(xaxis_tickangle=-45)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
 
 # =====================================================
 # PAGE: TIME PATTERNS
@@ -439,7 +630,7 @@ elif page == "Time Patterns":
                         color='Revenue',
                         color_continuous_scale='Blues')
             fig.update_layout(coloraxis_showscale=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         with col2:
             fig = px.bar(hourly, x='Hour', y='Transactions',
@@ -448,7 +639,7 @@ elif page == "Time Patterns":
                         color='Transactions',
                         color_continuous_scale='Greens')
             fig.update_layout(coloraxis_showscale=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
     
     # Weekday Analysis
     st.subheader("Weekday Performance")
@@ -468,14 +659,14 @@ elif page == "Time Patterns":
                         title='Revenue by Day of Week',
                         color='Weekday')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         with col2:
             fig = px.bar(weekday_data, x='Weekday', y='Transactions',
                         title='Transactions by Day of Week',
                         color='Weekday')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
     
     # Heatmap: Day vs Hour
     st.subheader("Peak Times Heatmap")
@@ -495,7 +686,7 @@ elif page == "Time Patterns":
                        labels=dict(x="Hour of Day", y="Weekday", color="Revenue ($)"),
                        title='Revenue Heatmap: Weekday vs Hour',
                        aspect='auto')
-        st.plotly_chart(fig, use_container_width=True)
+        ruya_plot(fig)
     
     # Time of Day Analysis
     st.subheader("Time of Day Analysis")
@@ -512,21 +703,21 @@ elif page == "Time Patterns":
                         title='Revenue by Time of Day',
                         color='Time of Day')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         with col2:
             fig = px.bar(tod, x='Time of Day', y='Transactions',
                         title='Transactions by Time of Day',
                         color='Time of Day')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         with col3:
             fig = px.bar(tod, x='Time of Day', y='Avg Ticket',
                         title='Avg Ticket by Time of Day',
                         color='Time of Day')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
 
 # =====================================================
 # PAGE: FORECASTING
@@ -713,7 +904,7 @@ elif page == "Forecasting":
                 hovermode='x unified'
             )
             
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
             
             # Forecast Summary Metrics
             st.subheader("Forecast Summary")
@@ -760,21 +951,21 @@ elif page == "Forecasting":
                         title='MAE (Lower = Better)',
                         color='Model')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         with col2:
             fig = px.bar(model_results, x='Model', y='RMSE',
                         title='RMSE (Lower = Better)',
                         color='Model')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         with col3:
             fig = px.bar(model_results, x='Model', y='MAPE (%)',
                         title='MAPE % (Lower = Better)',
                         color='Model')
             fig.update_layout(showlegend=False)
-            st.plotly_chart(fig, use_container_width=True)
+            ruya_plot(fig)
         
         st.dataframe(model_results, use_container_width=True)
         
