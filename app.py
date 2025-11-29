@@ -152,33 +152,51 @@ header[data-testid="stHeader"] * {
 /* =========================
    KPI CARDS (st.metric)
    ========================= */
+/* Animation keyframes */
+@keyframes kpiFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 div[data-testid="metric-container"],
 div[data-testid="stMetric"] {
+    /* --- YOUR ORIGINAL DESIGN (unchanged) --- */
     background-color: linear-gradient(135deg, #F7EFE5 0%, #F5F5F5 40%, #C6A98A 100%);
     border-radius: 18px;
     padding: 0.85rem 1.2rem;
-    box-shadow: 0 8px 20px rgba(111, 78, 55, 0.18); /* Coffee Brown shadow */
-    border: 1px solid rgba(0, 0, 0, 0.05);          /* Light border */
+    box-shadow: 0 8px 20px rgba(111, 78, 55, 0.18);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+
+    /* --- Animation layer (new) --- */
+    opacity: 0;
+    animation: kpiFadeInUp 0.55s ease-out forwards;
 }
 
-/* Text inside KPI cards */
+/* Text inside KPI cards — unchanged */
 div[data-testid="metric-container"] *,
 div[data-testid="stMetric"] * {
-    color: #3C2F2F !important;  /* KPI number: Deep Espresso */
+    color: #3C2F2F !important;
 }
 
 div[data-testid="stMetricLabel"],
 div[data-testid="metric-container"] > label {
-    color: #6E6E6E !important;  /* KPI label: light gray */
+    color: #6E6E6E !important;
     font-weight: 600;
     font-size: 0.9rem;
 }
 
 div[data-testid="stMetricValue"] {
-    color: #3C2F2F !important;  /* KPI number: Deep Espresso */
+    color: #3C2F2F !important;
     font-weight: 700;
     font-size: 1.3rem;
 }
+
 
 /* =========================
    PRIMARY BUTTONS
@@ -434,7 +452,6 @@ if page == "Overview":
     st.divider()
     
     # Quick Charts Row
-    # --- Chart Carousel ---
 
     charts = []  # will hold dicts: {"title": ..., "fig": ...}
 
