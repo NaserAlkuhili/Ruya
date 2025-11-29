@@ -156,12 +156,16 @@ header[data-testid="stHeader"] * {
 @keyframes kpiFadeInUp {
     from {
         opacity: 0;
-        transform: translateY(10px) scale(0.97);
+        transform: translateY(12px) scale(0.97);
     }
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
     }
+}
+
+.kpi-animate {
+    animation: kpiFadeInUp 0.6s ease-out forwards;
 }
 
 div[data-testid="metric-container"],
@@ -232,6 +236,29 @@ div[data-testid="stAlert"] * {
 }
 </style>
 """, unsafe_allow_html=True)
+
+st.markdown("""
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const cards = document.querySelectorAll(
+        'div[data-testid="metric-container"], div[data-testid="stMetric"]'
+    );
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("kpi-animate");
+            }
+        });
+    }, { threshold: 0.3 });
+
+    cards.forEach(card => {
+        observer.observe(card);
+    });
+});
+</script>
+""", unsafe_allow_html=True)
+
 
 
 import plotly.io as pio
