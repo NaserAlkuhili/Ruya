@@ -35,21 +35,20 @@ except ImportError:
     LSTM_AVAILABLE = False
 
 # === BRAND COLORS ===
-# Light cream background + deep espresso text
-RUYA_BG = "#F7EFE5"       # Café Cream
-RUYA_FONT = "#3C2F2F"     # Deep Espresso
+RUYA_FONT = "#3C2F2F"  # Deep Espresso
 
 def ruya_plot(fig):
     fig.update_layout(
-        paper_bgcolor=RUYA_BG,
-        plot_bgcolor=RUYA_BG,
+        paper_bgcolor="rgba(0,0,0,0)",   
+        plot_bgcolor="rgba(0,0,0,0)",    
         font=dict(color=RUYA_FONT),
         legend=dict(
-            bgcolor=RUYA_BG,
-            bordercolor="#D9D9D9"  # Medium gray border
+            bgcolor="rgba(0,0,0,0)",     
+            bordercolor="rgba(0,0,0,0)"  # remove border
         )
     )
     st.plotly_chart(fig, use_container_width=True, theme=None)
+
 
 # Set page configuration
 st.set_page_config(
@@ -155,7 +154,7 @@ header[data-testid="stHeader"] * {
    ========================= */
 div[data-testid="metric-container"],
 div[data-testid="stMetric"] {
-    background-color: #FFFFFF;  /* Pure White for cards */
+    background-color: linear-gradient(135deg, #F7EFE5 0%, #F5F5F5 40%, #C6A98A 100%);
     border-radius: 18px;
     padding: 0.85rem 1.2rem;
     box-shadow: 0 8px 20px rgba(111, 78, 55, 0.18); /* Coffee Brown shadow */
@@ -221,35 +220,34 @@ import plotly.io as pio
 
 ruya_template = {
     "layout": {
-        "paper_bgcolor": "#F7EFE5",  # Café Cream
-        "plot_bgcolor": "#F7EFE5",
-        "font": {"color": "#3C2F2F", "family": "sans-serif"},  # Deep Espresso
-        "title": {"font": {"color": "#3C2F2F"}},
+        "paper_bgcolor": "#fff7ec",
+        "plot_bgcolor": "#fff7ec",
+        "font": {"color": "#3e2723", "family": "sans-serif"},
+        "title": {"font": {"color": "#3e2723"}},
         "xaxis": {
-            "gridcolor": "#D9D9D9",       # Medium gray grid
-            "zerolinecolor": "#C6A98A",   # Mocha Beige zero line
-            "linecolor": "#3C2F2F",
-            "tickfont": {"color": "#3C2F2F"},
+            "gridcolor": "#e0c9b5",
+            "zerolinecolor": "#d7b899",
+            "linecolor": "#3e2723",
+            "tickfont": {"color": "#3e2723"},
         },
         "yaxis": {
-            "gridcolor": "#D9D9D9",
-            "zerolinecolor": "#C6A98A",
-            "linecolor": "#3C2F2F",
-            "tickfont": {"color": "#3C2F2F"},
+            "gridcolor": "#e0c9b5",
+            "zerolinecolor": "#d7b899",
+            "linecolor": "#3e2723",
+            "tickfont": {"color": "#3e2723"},
         },
         "legend": {
-            "bgcolor": "#F7EFE5",
-            "bordercolor": "#D9D9D9",
-            "font": {"color": "#3C2F2F"},
+            "bgcolor": "#fff7ec",
+            "bordercolor": "#d7b899",
+            "font": {"color": "#3e2723"},
         },
-        # Chart palette: blue, green, red, gold, teal, coffee brown
         "colorway": [
-            "#4A90E2",  # Chart Blue (primary)
-            "#7BC67E",  # Chart Green
-            "#E45C5C",  # Chart Red
-            "#E9C46A",  # Chart Yellow/Gold
-            "#2A9D8F",  # Chart Teal
-            "#6F4E37",  # Coffee Brown accent
+            "#6d4c41",  # Brown
+            "#8d6e63",
+            "#a1887f",
+            "#bcaaa4",
+            "#d7ccc8",
+            "#3e2723",
         ]
     }
 }
@@ -371,6 +369,9 @@ if selected_seasons and 'Season' in df.columns:
 
 filtered_df = df[mask].copy()
 
+if "chart_index" not in st.session_state:
+    st.session_state.chart_index = 0
+
 # =====================================================
 # PAGE: OVERVIEW
 # =====================================================
@@ -433,50 +434,102 @@ if page == "Overview":
     st.divider()
     
     # Quick Charts Row
-    col_chart1, col_chart2 = st.columns(2)
-    
-    with col_chart1:
-        st.subheader("Revenue Trends")
-        if 'Date' in filtered_df.columns and len(filtered_df) > 0:
-            daily_sales = filtered_df.groupby('Date')['money'].sum().reset_index()
-            fig = px.area(daily_sales, x='Date', y='money', 
-                         title='Daily Revenue Over Time',
-                         labels={'money': 'Revenue ($)', 'Date': 'Date'})
-            fig.update_layout(hovermode='x unified')
-            ruya_plot(fig)
-    
-    with col_chart2:
-        st.subheader("Top Products")
-        if 'coffee_name' in filtered_df.columns and len(filtered_df) > 0:
-            prod_revenue = filtered_df.groupby('coffee_name')['money'].sum().reset_index()
-            prod_revenue = prod_revenue.sort_values('money', ascending=True).tail(5)
-            fig = px.bar(prod_revenue, x='money', y='coffee_name', orientation='h',
-                        title='Top 5 Products by Revenue',
-                        labels={'money': 'Revenue ($)', 'coffee_name': 'Product'},
-                        color='coffee_name')
-            fig.update_layout(showlegend=False)
-            ruya_plot(fig)
-    
-    # Second Row of Charts
-    col_chart3, col_chart4 = st.columns(2)
-    
-    with col_chart3:
-        st.subheader("Sales by Season")
-        if 'Season' in filtered_df.columns and len(filtered_df) > 0:
-            season_sales = filtered_df.groupby('Season')['money'].sum().reset_index()
-            fig = px.pie(season_sales, values='money', names='Season',
-                        title='Revenue Distribution by Season')
-            fig.update_traces(textposition='inside', textinfo='percent+label')
-            ruya_plot(fig)
-    
-    with col_chart4:
-        st.subheader("Sales by Time of Day")
-        if 'Time_of_Day' in filtered_df.columns and len(filtered_df) > 0:
-            tod_sales = filtered_df.groupby('Time_of_Day')['money'].sum().reset_index()
-            fig = px.pie(tod_sales, values='money', names='Time_of_Day',
-                        title='Revenue Distribution by Time of Day')
-            fig.update_traces(textposition='inside', textinfo='percent+label')
-            ruya_plot(fig)
+    # --- Chart Carousel ---
+
+    charts = []  # will hold dicts: {"title": ..., "fig": ...}
+
+    # 1) Revenue Trends
+    if 'Date' in filtered_df.columns and len(filtered_df) > 0:
+        daily_sales = filtered_df.groupby('Date')['money'].sum().reset_index()
+        fig1 = px.area(
+            daily_sales,
+            x='Date',
+            y='money',
+            title='Daily Revenue Over Time',
+            labels={'money': 'Revenue ($)', 'Date': 'Date'}
+        )
+        fig1.update_layout(hovermode='x unified')
+        charts.append({"title": "Revenue Trends", "fig": fig1})
+
+    # 2) Top Products
+    if 'coffee_name' in filtered_df.columns and len(filtered_df) > 0:
+        prod_revenue = (
+            filtered_df.groupby('coffee_name')['money']
+            .sum()
+            .reset_index()
+            .sort_values('money', ascending=True)
+            .tail(5)
+        )
+        fig2 = px.bar(
+            prod_revenue,
+            x='money',
+            y='coffee_name',
+            orientation='h',
+            title='Top 5 Products by Revenue',
+            labels={'money': 'Revenue ($)', 'coffee_name': 'Product'},
+            color='coffee_name'
+        )
+        fig2.update_layout(showlegend=False)
+        charts.append({"title": "Top Products", "fig": fig2})
+
+    # 3) Sales by Season
+    if 'Season' in filtered_df.columns and len(filtered_df) > 0:
+        season_sales = filtered_df.groupby('Season')['money'].sum().reset_index()
+        fig3 = px.pie(
+            season_sales,
+            values='money',
+            names='Season',
+            title='Revenue Distribution by Season'
+        )
+        fig3.update_traces(textposition='inside', textinfo='percent+label')
+        charts.append({"title": "Sales by Season", "fig": fig3})
+
+    # 4) Sales by Time of Day
+    if 'Time_of_Day' in filtered_df.columns and len(filtered_df) > 0:
+        tod_sales = filtered_df.groupby('Time_of_Day')['money'].sum().reset_index()
+        fig4 = px.pie(
+            tod_sales,
+            values='money',
+            names='Time_of_Day',
+            title='Revenue Distribution by Time of Day'
+        )
+        fig4.update_traces(textposition='inside', textinfo='percent+label')
+        charts.append({"title": "Sales by Time of Day", "fig": fig4})
+
+    # If no charts available
+    if not charts:
+        st.info("No charts available for the current filters.")
+
+    else:
+        # --- Layout: LEFT ARROW | CHART | RIGHT ARROW ---
+        col_left, col_chart, col_right = st.columns([1, 8, 1])
+
+        # Capture button clicks FIRST
+        with col_left:
+            st.markdown("<div style='height: 180px;'></div>", unsafe_allow_html=True)
+            prev_clicked = st.button("◀", key="prev_chart")
+
+        with col_right:
+            st.markdown("<div style='height: 180px;'></div>", unsafe_allow_html=True)
+            next_clicked = st.button("▶", key="next_chart")
+
+        # Update index BEFORE selecting chart
+        if prev_clicked:
+            st.session_state.chart_index = (st.session_state.chart_index - 1) % len(charts)
+
+        if next_clicked:
+            st.session_state.chart_index = (st.session_state.chart_index + 1) % len(charts)
+
+        # Safety
+        st.session_state.chart_index %= len(charts)
+
+        # --- Display Current Chart ---
+        current = charts[st.session_state.chart_index]
+
+        with col_chart:
+            st.subheader(current["title"])
+            ruya_plot(current["fig"])
+
 
 # =====================================================
 # PAGE: SALES ANALYSIS
