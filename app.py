@@ -34,8 +34,10 @@ try:
 except ImportError:
     LSTM_AVAILABLE = False
 
-RUYA_BG = "#fff7ec"
-RUYA_FONT = "#3e2723"
+# === BRAND COLORS ===
+# Light cream background + deep espresso text
+RUYA_BG = "#F7EFE5"       # Café Cream
+RUYA_FONT = "#3C2F2F"     # Deep Espresso
 
 def ruya_plot(fig):
     fig.update_layout(
@@ -44,7 +46,7 @@ def ruya_plot(fig):
         font=dict(color=RUYA_FONT),
         legend=dict(
             bgcolor=RUYA_BG,
-            bordercolor="#d7b899"
+            bordercolor="#D9D9D9"  # Medium gray border
         )
     )
     st.plotly_chart(fig, use_container_width=True, theme=None)
@@ -64,11 +66,11 @@ st.markdown("""
    TOP HEADER
    ========================= */
 header[data-testid="stHeader"] {
-    background: #3e2723 !important;   /* dark brown */
-    color: #fbe9e7 !important;        /* light beige text */
+    background: #3C2F2F !important;   /* Deep Espresso */
+    color: #F7EFE5 !important;        /* Café Cream text */
 }
 header[data-testid="stHeader"] * {
-    color: #fbe9e7 !important;
+    color: #F7EFE5 !important;
 }
 
 /* Force light color scheme */
@@ -76,20 +78,20 @@ header[data-testid="stHeader"] * {
     color-scheme: light;
 }
 
-/* Main background */
+/* Main background: cream → soft gray + mocha */
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, #fdf4e3 0%, #f5e1c8 40%, #f0d6b4 100%);
+    background: linear-gradient(135deg, #F7EFE5 0%, #F5F5F5 40%, #C6A98A 100%);
 }
 
 /* =========================
    SIDEBAR
    ========================= */
 [data-testid="stSidebar"] {
-    background-color: #3e2723;
-    color: #fbe9e7;
+    background-color: #6F4E37;  /* Coffee Brown */
+    color: #F7EFE5;
 }
 [data-testid="stSidebar"] * {
-    color: #fbe9e7 !important;
+    color: #F7EFE5 !important;
 }
 
 /* =========================
@@ -108,7 +110,7 @@ header[data-testid="stHeader"] * {
     width: 140px;
     height: auto;
     border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(62, 39, 35, 0.35);
+    box-shadow: 0 10px 30px rgba(111, 78, 55, 0.35); /* Coffee Brown shadow */
     margin-bottom: 0.9rem;
 }
 
@@ -116,7 +118,7 @@ header[data-testid="stHeader"] * {
     font-size: 2.2rem;
     font-weight: 700;
     letter-spacing: 0.06em;
-    color: #3e2723;
+    color: #3C2F2F;   /* Deep Espresso */
     margin-top: 0.4rem;
     margin-bottom: 0.2rem;
 }
@@ -124,14 +126,14 @@ header[data-testid="stHeader"] * {
 /* Subtitle + typing effect */
 .ruya-subtitle {
     font-size: 1.05rem;
-    color: #6d4c41;
+    color: #6E6E6E;   /* Light gray text */
     margin-bottom: 0.2rem;
     font-weight: 500;
 }
 
 .typing {
     font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    border-right: 2px solid #5d4037;
+    border-right: 2px solid #3C2F2F;  /* Deep Espresso cursor */
     white-space: nowrap;
     overflow: hidden;
     display: inline-block;
@@ -153,28 +155,28 @@ header[data-testid="stHeader"] * {
    ========================= */
 div[data-testid="metric-container"],
 div[data-testid="stMetric"] {
-    background-color: #fff7ec;
+    background-color: #FFFFFF;  /* Pure White for cards */
     border-radius: 18px;
     padding: 0.85rem 1.2rem;
-    box-shadow: 0 8px 20px rgba(121, 85, 72, 0.18);
-    border: 1px solid rgba(121, 85, 72, 0.25);
+    box-shadow: 0 8px 20px rgba(111, 78, 55, 0.18); /* Coffee Brown shadow */
+    border: 1px solid rgba(0, 0, 0, 0.05);          /* Light border */
 }
 
 /* Text inside KPI cards */
 div[data-testid="metric-container"] *,
 div[data-testid="stMetric"] * {
-    color: #3e2723 !important;
+    color: #3C2F2F !important;  /* KPI number: Deep Espresso */
 }
 
 div[data-testid="stMetricLabel"],
 div[data-testid="metric-container"] > label {
-    color: #6d4c41 !important;
+    color: #6E6E6E !important;  /* KPI label: light gray */
     font-weight: 600;
     font-size: 0.9rem;
 }
 
 div[data-testid="stMetricValue"] {
-    color: #3e2723 !important;
+    color: #3C2F2F !important;  /* KPI number: Deep Espresso */
     font-weight: 700;
     font-size: 1.3rem;
 }
@@ -187,32 +189,73 @@ div[data-testid="stButton"] > button,
 div[data-testid="stDownloadButton"] > button,
 div[data-testid="baseButton-primary"] button,
 button[kind="primary"] {
-    background-color: #6d4c41 !important;
-    color: #fff7ec !important;
+    background-color: #6F4E37 !important;  /* Coffee Brown primary */
+    color: #FFFFFF !important;             /* Pure White text */
     border-radius: 999px !important;
     border: none !important;
-    box-shadow: 0 4px 10px rgba(121, 85, 72, 0.30);
+    box-shadow: 0 4px 10px rgba(111, 78, 55, 0.30);
 }
 
 div[data-testid="stButton"] > button:hover,
 div[data-testid="stDownloadButton"] > button:hover,
 div[data-testid="baseButton-primary"] button:hover,
 button[kind="primary"]:hover {
-    background-color: #5d4037 !important;
+    background-color: #3C2F2F !important;  /* Deep Espresso hover */
 }
 
 /* =========================
    ALERTS (st.success, st.warning, etc.)
    ========================= */
 div[data-testid="stAlert"] {
-    background-color: #fff7ec !important;
-    border-left: 4px solid #6d4c41 !important;
+    background-color: #F5F5F5 !important;          /* Background gray */
+    border-left: 4px solid #6F4E37 !important;     /* Coffee Brown */
 }
 div[data-testid="stAlert"] * {
-    color: #3e2723 !important;
+    color: #3C2F2F !important;                     /* Deep Espresso text */
 }
 </style>
 """, unsafe_allow_html=True)
+
+
+import plotly.io as pio
+
+ruya_template = {
+    "layout": {
+        "paper_bgcolor": "#F7EFE5",  # Café Cream
+        "plot_bgcolor": "#F7EFE5",
+        "font": {"color": "#3C2F2F", "family": "sans-serif"},  # Deep Espresso
+        "title": {"font": {"color": "#3C2F2F"}},
+        "xaxis": {
+            "gridcolor": "#D9D9D9",       # Medium gray grid
+            "zerolinecolor": "#C6A98A",   # Mocha Beige zero line
+            "linecolor": "#3C2F2F",
+            "tickfont": {"color": "#3C2F2F"},
+        },
+        "yaxis": {
+            "gridcolor": "#D9D9D9",
+            "zerolinecolor": "#C6A98A",
+            "linecolor": "#3C2F2F",
+            "tickfont": {"color": "#3C2F2F"},
+        },
+        "legend": {
+            "bgcolor": "#F7EFE5",
+            "bordercolor": "#D9D9D9",
+            "font": {"color": "#3C2F2F"},
+        },
+        # Chart palette: blue, green, red, gold, teal, coffee brown
+        "colorway": [
+            "#4A90E2",  # Chart Blue (primary)
+            "#7BC67E",  # Chart Green
+            "#E45C5C",  # Chart Red
+            "#E9C46A",  # Chart Yellow/Gold
+            "#2A9D8F",  # Chart Teal
+            "#6F4E37",  # Coffee Brown accent
+        ]
+    }
+}
+
+pio.templates["ruya"] = ruya_template
+pio.templates.default = "ruya"
 
 # --- Data Loading Function ---
 @st.cache_data
@@ -247,6 +290,7 @@ def load_data(file_path):
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return None
+
 
 # --- Load Data ---
 file_path = "Coffe_sales.csv"
